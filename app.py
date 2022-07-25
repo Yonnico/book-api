@@ -1,3 +1,4 @@
+from pickle import FALSE
 import re
 from flask import Flask, jsonify, abort, make_response, request
 from flask_httpauth import HTTPBasicAuth
@@ -6,7 +7,8 @@ app = Flask(__name__)
 
 
 def add_author_to_book(book):
-    author = list(filter(lambda author: author['id'] == book['author_id'], all_authors))
+    author = list(filter(lambda author: author['id'] == 
+    book['author_id'], all_authors))
     author = author[0]
     book_with_author = book.copy()
     book_with_author.pop('author_id')
@@ -14,12 +16,30 @@ def add_author_to_book(book):
     return book_with_author
 
 
-def add_book_to_author(author):
-    book = list(filter(lambda book: book['author_id'] == author['id'], all_books))
-    book = book[0]
-    author_with_book = author.copy()
-    author_with_book['book'] = book
-    return author_with_book
+def add_books_to_author(author):
+    books = list(filter(lambda book: book['author_id'] == 
+    author['id'], all_books))
+    author_with_books = author.copy()
+    author_with_books['books'] = books
+    return author_with_books
+
+
+def find_book_by_id(book_id):
+    book = list(filter(lambda b: b['id'] == book_id, all_books))
+    return book
+
+
+def find_author_by_id(author_id):
+    author = list(filter(lambda a: a['id'] == author_id, all_authors))
+    return author
+
+
+def is_author_id_exist(id):
+    value = False
+    for author in all_authors:
+        if author['id'] == id:
+            value = True
+    return value
 
 
 all_books = [
@@ -91,28 +111,53 @@ def bad_request(error):
 
 @app.route('/book/api/v1.0/books', methods=['GET'])
 def get_books():
+    return jsonify({'books': all_books})
+
+
+@app.route('/book/api/v1.0/books_with_author', methods=['GET'])
+def get_books_with_author():
     return jsonify({'books': list(map(add_author_to_book, all_books))})
 
 
 @app.route('/book/api/v1.0/authors', methods=['GET'])
 def get_authors():
-    return jsonify({'authors': list(map(add_book_to_author, all_authors))})
+    return jsonify({'authors': all_authors})
+
+@app.route('/book/api/v1.0/authors_with_books', methods=['GET'])
+def get_authors_with_books():
+    return jsonify({'authors': list(map(add_books_to_author, all_authors))})
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['GET'])
 def get_book(book_id):
-    book = list(filter(lambda b: b['id'] == book_id, all_books))
+    book = find_book_by_id(book_id)
     if len(book) == 0:
         abort(404)
-    return jsonify({'book': list(map(add_author_to_book, book))})
+    return jsonify({'book': book[0]})
+
+
+@app.route('/book/api/v1.0/books_with_author/<int:book_id>', methods=['GET'])
+def get_book_with_author(book_id):
+    book = find_book_by_id(book_id)
+    if len(book) == 0:
+        abort(404)
+    return jsonify({'book': add_author_to_book(book[0])})
 
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['GET'])
 def get_author(author_id):
-    author = list(filter(lambda a: a['id'] == author_id, all_authors))
+    author = find_author_by_id(author_id)
     if len(author) == 0:
         abort(404)
-    return jsonify({'author': list(map(add_book_to_author, author))})
+    return jsonify({'author': author[0]})
+
+
+@app.route('/book/api/v1.0/authors_with_books/<int:author_id>', methods=['GET'])
+def get_author_with_books(author_id):
+    author = find_author_by_id(author_id)
+    if len(author) == 0:
+        abort(404)
+    return jsonify({'author': add_books_to_author(author[0])})
 
 
 @app.route('/book/api/v1.0/books', methods=['POST'])
@@ -133,7 +178,7 @@ def add_book():
         if not isinstance(request.json['annotation'], str) or not len(request.json['annotation']):
             abort(400)
     if 'author_id' in request.json:
-        if not isinstance(request.json['author_id'], int) or request.json['author_id'] > len(all_authors):
+        if not isinstance(request.json['author_id'], int) or not is_author_id_exist(request.json['author_id']):
             abort(400)
 
     book = {
@@ -174,8 +219,8 @@ def add_author():
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['PUT'])
 @auth.login_required
 def change_book(book_id):
-    book = list(filter(lambda b: b['id'] == book_id, all_books))
-    if not len(book):
+    book = find_book_by_id(book_id)
+    if len(book) == 0:
         abort(404)
     if not request.json:
         abort(400)
@@ -197,8 +242,8 @@ def change_book(book_id):
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['PUT'])
 @auth.login_required
 def change_author(author_id):
-    author = list(filter(lambda a: a['id'] == author_id, all_authors))
-    if not len(author):
+    author = find_author_by_id(author_id)
+    if len(author) == 0:
         abort(404)
     if not request.json:
         abort(400)
@@ -216,8 +261,8 @@ def change_author(author_id):
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['DELETE'])
 @auth.login_required
 def delete_book(book_id):
-    book = list(filter(lambda b: b['id'] == book_id, all_books))
-    if not len(book):
+    book = find_book_by_id(book_id)
+    if len(book) == 0:
         abort(404)
     all_books.remove(book[0])
     return jsonify({'result': True})
@@ -226,8 +271,8 @@ def delete_book(book_id):
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['DELETE'])
 @auth.login_required
 def delete_author(author_id):
-    author = list(filter(lambda a: a['id'] == author_id, all_authors))
-    if not len(author):
+    author = find_author_by_id(author_id)
+    if len(author) == 0:
         abort(404)
     all_authors.remove(author[0])
     return jsonify({'result': True})
