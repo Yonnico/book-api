@@ -5,8 +5,7 @@ app = Flask(__name__)
 
 
 def add_author_to_book(book):
-    author = list(filter(lambda author: author['id'] == 
-    book['author_id'], all_authors))
+    author = list(filter(lambda a: a['id'] == book['author_id'], all_authors))
     author = author[0]
     book_with_author = book.copy()
     book_with_author.pop('author_id')
@@ -15,8 +14,7 @@ def add_author_to_book(book):
 
 
 def add_books_to_author(author):
-    books = list(filter(lambda book: book['author_id'] == 
-    author['id'], all_books))
+    books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
     author_with_books = author.copy()
     author_with_books['books'] = books
     return author_with_books
