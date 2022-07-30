@@ -107,12 +107,12 @@ def bad_request(error):
 
 @app.route('/book/api/v1.0/books', methods=['GET'])
 def get_books():
-    return jsonify({'all_books': all_books})
-
-
-@app.route('/book/api/v1.0/books_with_author', methods=['GET'])
-def get_books_with_author():
-    return jsonify({'books_with_author': list(map(add_author_to_book, all_books))})
+    with_authors = request.args.get('with-authors')
+    books = all_books
+    if with_authors or with_authors == '':
+        books = list(map(add_author_to_book, all_books))
+        return jsonify({'all_books': books})
+    return jsonify({'all_books': books})
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['GET'])
@@ -120,15 +120,12 @@ def get_book(book_id):
     book = find_book_by_id(book_id)
     if not len(book):
         abort(404)
+    with_authors = request.args.get('with-authors')
+    if with_authors or with_authors == '':
+        book = add_author_to_book(book[0])
+        return jsonify ({'book': book})
     return jsonify({'book': book[0]})
 
-
-@app.route('/book/api/v1.0/books_with_author/<int:book_id>', methods=['GET'])
-def get_book_with_author(book_id):
-    book = find_book_by_id(book_id)
-    if not len(book):
-        abort(404)
-    return jsonify({'book_with_author': add_author_to_book(book[0])})
 
 @app.route('/book/api/v1.0/books', methods=['POST'])
 @auth.login_required
@@ -196,11 +193,12 @@ def delete_book(book_id):
 
 @app.route('/book/api/v1.0/authors', methods=['GET'])
 def get_authors():
-    return jsonify({'all_authors': all_authors})
-
-@app.route('/book/api/v1.0/authors_with_books', methods=['GET'])
-def get_authors_with_books():
-    return jsonify({'authors_with_books': list(map(add_books_to_author, all_authors))})
+    with_books = request.args.get('with-books')
+    authors = all_authors
+    if with_books or with_books == '':
+        authors = list(map(add_books_to_author, all_authors))
+        return jsonify ({'all_authors': authors})
+    return jsonify({'all_authors': authors})
 
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['GET'])
@@ -208,15 +206,11 @@ def get_author(author_id):
     author = find_author_by_id(author_id)
     if not len(author):
         abort(404)
+    with_books = request.args.get('with-books')
+    if with_books or with_books == '':
+        author = add_books_to_author(author[0])
+        return jsonify({'author': author})
     return jsonify({'author': author[0]})
-
-
-@app.route('/book/api/v1.0/authors_with_books/<int:author_id>', methods=['GET'])
-def get_author_with_books(author_id):
-    author = find_author_by_id(author_id)
-    if not len(author):
-        abort(404)
-    return jsonify({'author_with_books': add_books_to_author(author[0])})
 
 
 @app.route('/book/api/v1.0/authors', methods=['POST'])
