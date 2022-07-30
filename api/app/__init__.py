@@ -1,83 +1,14 @@
 from flask import Flask, jsonify, abort, make_response, request
 from flask_httpauth import HTTPBasicAuth
 
+from api.author.db import all_authors
+from api.book.db import all_books
+
+from api.author.services import add_books_to_author, find_author_by_id, is_author_id_exist
+from api.book.services import add_author_to_book, find_book_by_id
+
+
 app = Flask(__name__)
-
-
-def add_author_to_book(book):
-    author = list(filter(lambda a: a['id'] == book['author_id'], all_authors))
-    author = author[0]
-    book_with_author = book.copy()
-    book_with_author.pop('author_id')
-    book_with_author['author'] = author
-    return book_with_author
-
-
-def add_books_to_author(author):
-    books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
-    author_with_books = author.copy()
-    author_with_books['books'] = books
-    return author_with_books
-
-
-def find_book_by_id(book_id):
-    book = list(filter(lambda b: b['id'] == book_id, all_books))
-    return book
-
-
-def find_author_by_id(author_id):
-    author = list(filter(lambda a: a['id'] == author_id, all_authors))
-    return author
-
-
-def is_author_id_exist(id):
-    value = False
-    for author in all_authors:
-        if author['id'] == id:
-            value = True
-    return value
-
-
-all_books = [
-    {
-        'id': 1,
-        'title': 'Война и мир',
-        'annotation': 'Про книгу война и мир',
-        'author_id': 1
-    },
-    {
-        'id': 2,
-        'title': 'Евгений Онегин',
-        'annotation': 'Про книгу Евгений Онегин',
-        'author_id': 2
-    },
-    {
-        'id': 3,
-        'title': 'Анна Каренина',
-        'annotation': 'Про книгу Анна Каренина',
-        'author_id': 1
-    },
-    {
-        'id': 4,
-        'title': 'Полтава',
-        'annotation': 'Про книгу Полтава',
-        'author_id': 2
-    }
-]
-
-
-all_authors = [
-    {
-        'id': 1,
-        'nickname': 'TolstoyProd',
-        'name': 'Лев Толстой'
-    },
-    {
-        'id': 2,
-        'nickname': 'PushkinProd',
-        'name': 'Александр Пушкин'
-    }
-]
 
 
 auth = HTTPBasicAuth()
@@ -265,7 +196,3 @@ def delete_author(author_id):
         abort(404)
     all_authors.remove(author[0])
     return jsonify({'result': True})
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
