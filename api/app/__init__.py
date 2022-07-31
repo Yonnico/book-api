@@ -54,7 +54,7 @@ def get_book(book_id):
     with_authors = request.args.get('with-authors')
     if with_authors or with_authors == '':
         book = add_author_to_book(book)
-    return jsonify({'book': book})
+    return jsonify(book)
 
 
 @app.route('/book/api/v1.0/books', methods=['POST'])
@@ -85,13 +85,14 @@ def add_book():
         'author_id': request.json['author_id']
     }
     all_books.append(book)
-    return jsonify({'book': book}), 201
+    return jsonify(book), 201
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['PUT'])
 @auth.login_required
 def change_book(book_id):
     book = find_book_by_id(book_id)
+    book = book[0]
     if not len(book):
         abort(404)
     if not request.json:
@@ -105,10 +106,10 @@ def change_book(book_id):
     if 'author_id' in request.json:
         if not isinstance(request.json['author_id'], int) or not is_author_id_exist(request.json['author_id']):
             abort(400)
-    book[0]['title'] = request.json.get('title', book[0]['title'])
-    book[0]['annotation'] = request.json.get('annotation', book[0]['annotation'])
-    book[0]['author_id'] = request.json.get('author_id', book[0]['author_id'])
-    return jsonify({'book': book[0]})
+    book['title'] = request.json.get('title', book['title'])
+    book['annotation'] = request.json.get('annotation', book['annotation'])
+    book['author_id'] = request.json.get('author_id', book['author_id'])
+    return jsonify(book)
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['DELETE'])
@@ -139,7 +140,7 @@ def get_author(author_id):
     with_books = request.args.get('with-books')
     if with_books or with_books == '':
         author = add_books_to_author(author)
-    return jsonify({'author': author})
+    return jsonify(author)
 
 
 @app.route('/book/api/v1.0/authors', methods=['POST'])
@@ -164,13 +165,14 @@ def add_author():
         'name': request.json['name']
     }
     all_authors.append(author)
-    return jsonify({'author': author}), 201
+    return jsonify(author), 201
 
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['PUT'])
 @auth.login_required
 def change_author(author_id):
     author = find_author_by_id(author_id)
+    author = author[0]
     if not len(author):
         abort(404)
     if not request.json:
@@ -181,9 +183,9 @@ def change_author(author_id):
     if 'name' in request.json:
         if not isinstance(request.json['name'], str) or not len(request.json['name']):
             abort(400)
-    author[0]['nickname'] = request.json.get('nickname', author[0]['nickname'])
-    author[0]['name'] = request.json.get('name', author[0]['name'])
-    return jsonify({'author': author[0]})
+    author['nickname'] = request.json.get('nickname', author['nickname'])
+    author['name'] = request.json.get('name', author['name'])
+    return jsonify(author)
 
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['DELETE'])
