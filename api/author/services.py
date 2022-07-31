@@ -1,3 +1,4 @@
+from flask import jsonify
 from api.author.db import all_authors
 from api.book.db import all_books
 
@@ -18,3 +19,11 @@ def is_author_id_exist(id):
         if author['id'] == id:
             value = True
     return value
+
+
+def remove_books_with_author(author):
+    books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
+    for book in books:
+        books.remove(book)
+    all_authors.remove(author)
+    return jsonify({"result": True})
