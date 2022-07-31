@@ -4,7 +4,7 @@ from flask_httpauth import HTTPBasicAuth
 from api.author.db import all_authors
 from api.book.db import all_books
 
-from api.author.services import add_books_to_author, find_author_by_id, is_author_id_exist
+from api.author.services import add_books_to_author, find_author_by_id, is_author_id_exist, remove_books_with_author
 from api.book.services import add_author_to_book, find_book_by_id
 
 
@@ -192,7 +192,8 @@ def change_author(author_id):
 @auth.login_required
 def delete_author(author_id):
     author = find_author_by_id(author_id)
+    author = author[0]
     if not len(author):
         abort(404)
-    all_authors.remove(author[0])
-    return jsonify({'result': True})
+    result = remove_books_with_author(author)
+    return result
