@@ -1,0 +1,9 @@
+README.md
+setup.py
+api/__init__.py
+book_api.egg-info/PKG-INFO
+book_api.egg-info/SOURCES.txt
+book_api.egg-info/dependency_links.txt
+book_api.egg-info/not-zip-safe
+book_api.egg-info/requires.txt
+book_api.egg-info/top_level.txt

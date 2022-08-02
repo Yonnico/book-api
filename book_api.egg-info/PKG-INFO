@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: book-api
+Version: 1.0
+
+Built-in functions, exceptions, and other objects.
+
+Noteworthy: None is the `nil' object; Ellipsis represents `...' in slices.
