@@ -54,8 +54,8 @@ def get_books():
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['GET'])
 def get_book(book_id):
     book = find_book_by_id(book_id)
-    book = book[0]
     validate_len(book)
+    book = book[0]
     with_authors = request.args.get('with-authors')
     if with_authors or with_authors == '':
         book = add_author_to_book(book)
@@ -73,8 +73,8 @@ def add_book():
 @auth.login_required
 def change_book(book_id):
     book = find_book_by_id(book_id)
-    book = book[0]
     validate_len(book)
+    book = book[0]
     if not request.json:
         abort(400)
     if 'title' in request.json:
@@ -96,8 +96,8 @@ def change_book(book_id):
 @auth.login_required
 def delete_book(book_id):
     book = find_book_by_id(book_id)
-    book = book[0]
     validate_len(book)
+    book = book[0]
     delete_book_from_all_books(book)
     return jsonify({'result': True})
 
@@ -114,8 +114,8 @@ def get_authors():
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['GET'])
 def get_author(author_id):
     author = find_author_by_id(author_id)
-    author = author[0]
     validate_len(author)
+    author = author[0]
     with_books = request.args.get('with-books')
     if with_books or with_books == '':
         author = add_books_to_author(author)
@@ -133,8 +133,8 @@ def add_author():
 @auth.login_required
 def change_author(author_id):
     author = find_author_by_id(author_id)
-    author = author[0]
     validate_len(author)
+    author = author[0]
     if not request.json:
         abort(400)
     if 'nickname' in request.json:
