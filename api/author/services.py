@@ -1,6 +1,9 @@
 from flask import request, abort
+
 from api.author.db import all_authors
 from api.book.db import all_books
+
+from api.core.services import validate_for_str
 
 
 def find_author_by_id(author_id):
@@ -42,14 +45,6 @@ def validate_author_id(val):
     return isinstance(val, int) and is_author_id_exist(val)
 
 
-def validate_nickname(val):
-    return isinstance(val, str) and len(val)
-
-
-def validate_name(val):
-    return isinstance(val, str) and len(val)
-
-
 def validate_add_author(nickname, name):
     if not request.json:
         abort(400)
@@ -58,10 +53,10 @@ def validate_add_author(nickname, name):
     if 'name' not in request.json:
         abort(400)
     if 'nickname' in request.json:
-        if not validate_nickname(nickname):
+        if not validate_for_str(nickname):
             abort(400)
     if 'name' in request.json:
-        if not validate_name(name):
+        if not validate_for_str(name):
             abort(400)
     id = all_authors[-1]['id'] + 1
     author = {

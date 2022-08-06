@@ -5,6 +5,9 @@ from api.book.db import all_books
 
 from api.author.services import validate_author_id
 
+from api.core.services import validate_for_str
+
+
 def find_book_by_id(book_id):
     book = list(filter(lambda b: b['id'] == book_id, all_books))
     return book
@@ -27,16 +30,8 @@ def get_all_books_with_authors():
     return list(map(add_author_to_book, all_books))
 
 
-def delete_book_from_all_books(book):
+def remove_book(book):
     return all_books.remove(book)
-
-
-def validate_title(val):
-    return isinstance(val, str) and len(val)
-
-
-def validate_annotation(val):
-    return isinstance(val, str) and len(val)
 
 
 def validate_add_book(title, annotation, author_id):
@@ -49,10 +44,10 @@ def validate_add_book(title, annotation, author_id):
     if not 'author_id' in request.json:
         abort(400)
     if 'title' in request.json:
-        if not validate_title(title):
+        if not validate_for_str(title):
             abort(400)
     if 'annotation' in request.json:
-        if not validate_annotation(annotation):
+        if not validate_for_str(annotation):
             abort(400)
     if 'author_id' in request.json:
         if not validate_author_id(author_id):

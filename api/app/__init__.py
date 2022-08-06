@@ -3,15 +3,14 @@ from flask_httpauth import HTTPBasicAuth
 
 from api.book.services import add_author_to_book, find_book_by_id
 from api.book.services import get_all_books, get_all_books_with_authors
-from api.book.services import validate_add_book, delete_book_from_all_books
-from api.book.services import validate_title, validate_annotation
+from api.book.services import validate_add_book, remove_book
 
 from api.author.services import add_books_to_author, find_author_by_id
 from api.author.services import get_all_authors, get_all_authors_with_books
 from api.author.services import validate_add_author, remove_books_with_author
-from api.author.services import validate_author_id, validate_nickname, validate_name
+from api.author.services import validate_author_id
 
-from api.core.services import validate_len
+from api.core.services import validate_len, validate_for_str
 
 
 app = Flask(__name__)
@@ -78,10 +77,10 @@ def change_book(book_id):
     if not request.json:
         abort(400)
     if 'title' in request.json:
-        if not validate_title(request.json['title']):
+        if not validate_for_str(request.json['title']):
             abort(400)
     if 'annotation' in request.json:
-        if not validate_annotation(request.json['annotation']):
+        if not validate_for_str(request.json['annotation']):
             abort(400)
     if 'author_id' in request.json:
         if not validate_author_id(request.json['author_id']):
@@ -98,7 +97,7 @@ def delete_book(book_id):
     book = find_book_by_id(book_id)
     validate_len(book)
     book = book[0]
-    delete_book_from_all_books(book)
+    remove_book(book)
     return jsonify({'result': True})
 
 
@@ -138,10 +137,10 @@ def change_author(author_id):
     if not request.json:
         abort(400)
     if 'nickname' in request.json:
-        if not validate_nickname(request.json['nickname']):
+        if not validate_for_str(request.json['nickname']):
             abort(400)
     if 'name' in request.json:
-        if not validate_name(request.json['name']):
+        if not validate_for_str(request.json['name']):
             abort(400)
     author['nickname'] = request.json.get('nickname', author['nickname'])
     author['name'] = request.json.get('name', author['name'])
