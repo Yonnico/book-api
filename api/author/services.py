@@ -1,17 +1,19 @@
-from flask import request, abort
+from flask import request
 
 from api.author.db import all_authors
 from api.book.db import all_books
 
-from api.core.services import validate_for_str
+from api.author.validation import validate_nickname, validate_name
 
 
-def find_author_by_id(author_id):
+def get_author_by_id(author_id):
     author = list(filter(lambda a: a['id'] == author_id, all_authors))
-    return author
+    if len(author):
+        return author[0]
+    return None
 
 
-def add_books_to_author(author):
+def get_books_to_author(author):
     books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
     author_with_books = author.copy()
     author_with_books['books'] = books
@@ -23,15 +25,7 @@ def get_all_authors():
 
 
 def get_all_authors_with_books():
-    return list(map(add_books_to_author, all_authors))
-
-
-def is_author_id_exist(id):
-    value = False
-    for author in all_authors:
-        if author['id'] == id:
-            value = True
-    return value
+    return list(map(get_books_to_author, all_authors))
 
 
 def remove_books_with_author(author):
@@ -42,23 +36,28 @@ def remove_books_with_author(author):
     return
 
 
-def validate_author_id(val):
-    return isinstance(val, int) and is_author_id_exist(val)
+def validate_and_add_author(nickname, name):
+    if not private_validate_add_author(nickname, name):
+        return None
+    return private_add_author(nickname, name)
 
 
-def validate_add_author(nickname, name):
+def private_validate_add_author(nickname, name):
     if not request.json:
-        abort(400)
+        return None
     if 'nickname' not in request.json:
-        abort(400)
+        return None
     if 'name' not in request.json:
-        abort(400)
+        return None
     if 'nickname' in request.json:
-        if not validate_for_str(nickname):
-            abort(400)
+        if not validate_nickname(nickname):
+            return None
     if 'name' in request.json:
-        if not validate_for_str(name):
-            abort(400)
+        if not validate_name(name):
+            return None
+    return True
+
+def private_add_author(nickname, name):
     id = all_authors[-1]['id'] + 1
     author = {
         'id': id,
@@ -67,3 +66,35 @@ def validate_add_author(nickname, name):
     }
     all_authors.append(author)
     return author
+
+
+def validate_and_change_author(author_id, nickname, name):
+    if not private_validate_change_author(nickname, name):
+        return {'status': 1}
+    return private_change_author(author_id, nickname, name)
+
+def private_validate_change_author(nickname, name):
+    if not request.json:
+        return None
+    if 'nickname' in request.json:
+        if not validate_nickname(nickname):
+            return None
+    if 'name' in request.json:
+        if not validate_name(name):
+            return None
+    return True
+
+
+def private_change_author(author_id, nickname, name):
+    author = get_author_by_id(author_id)
+    if not author:
+        return {'status': 0, 'value': None}
+    if nickname is not None and not validate_nickname(nickname):
+        return {'status': 1, 'value': nickname}
+    if name is not None and not validate_name(name):
+        return {'status': 1, 'value': name}
+    if nickname is not None:
+        author['nickname'] = nickname
+    if name is not None:
+        author['name'] = name
+    return {'status': 2, 'value': author}
