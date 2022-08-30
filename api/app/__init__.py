@@ -1,16 +1,13 @@
 from flask import Flask, jsonify, make_response, request, abort
 from flask_httpauth import HTTPBasicAuth
 
-from api.book.services import add_author_to_book, find_book_by_id
+from api.book.services import get_author_to_book, get_book_by_id, validate_and_change_book
 from api.book.services import get_all_books, get_all_books_with_authors
-from api.book.services import validate_add_book, remove_book
+from api.book.services import validate_and_add_book, remove_book
 
-from api.author.services import add_books_to_author, find_author_by_id
+from api.author.services import get_books_to_author, get_author_by_id, validate_and_change_author
 from api.author.services import get_all_authors, get_all_authors_with_books
-from api.author.services import validate_add_author, remove_books_with_author
-from api.author.services import validate_author_id
-
-from api.core.services import validate_len, validate_for_str
+from api.author.services import validate_and_add_author, remove_books_with_author
 
 
 app = Flask(__name__)
@@ -43,8 +40,8 @@ def bad_request(error):
 
 @app.route('/book/api/v1.0/books', methods=['GET'])
 def get_books():
-    with_authors = request.args.get('with-authors')
     books = get_all_books()
+    with_authors = request.args.get('with-authors')
     if with_authors or with_authors == '':
         books = get_all_books_with_authors()
     return jsonify({'all_books': books})
@@ -52,59 +49,60 @@ def get_books():
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['GET'])
 def get_book(book_id):
-    book = find_book_by_id(book_id)
-    validate_len(book)
-    book = book[0]
+    book = get_book_by_id(book_id)
+    if not book:
+        abort(404)
     with_authors = request.args.get('with-authors')
     if with_authors or with_authors == '':
-        book = add_author_to_book(book)
+        book = get_author_to_book(book)
     return jsonify(book)
 
 
 @app.route('/book/api/v1.0/books', methods=['POST'])
 @auth.login_required
 def add_book():
-    book = validate_add_book(request.json['title'], request.json['annotation'], request.json['author_id'])
+    book = validate_and_add_book(
+        request.json['title'],
+        request.json['annotation'],
+        request.json['author_id']
+    )
+    if not book:
+        abort(400)
     return jsonify(book)
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['PUT'])
 @auth.login_required
 def change_book(book_id):
-    book = find_book_by_id(book_id)
-    validate_len(book)
-    book = book[0]
     if not request.json:
         abort(400)
-    if 'title' in request.json:
-        if not validate_for_str(request.json['title']):
-            abort(400)
-    if 'annotation' in request.json:
-        if not validate_for_str(request.json['annotation']):
-            abort(400)
-    if 'author_id' in request.json:
-        if not validate_author_id(request.json['author_id']):
-            abort(400)
-    book['title'] = request.json.get('title', book['title'])
-    book['annotation'] = request.json.get('annotation', book['annotation'])
-    book['author_id'] = request.json.get('author_id', book['author_id'])
-    return jsonify(book)
+    response = validate_and_change_book(
+        book_id,
+        request.json.get('title', None),
+        request.json.get('annotation', None),
+        request.json.get('author_id', None)
+    )
+    if response['status'] == 0:
+        abort(404)
+    if response['status'] == 1:
+        abort(400)
+    return jsonify(response['value'])
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['DELETE'])
 @auth.login_required
 def delete_book(book_id):
-    book = find_book_by_id(book_id)
-    validate_len(book)
-    book = book[0]
+    book = get_book_by_id(book_id)
+    if not book:
+        abort(404)
     remove_book(book)
     return jsonify({'result': True})
 
 
 @app.route('/book/api/v1.0/authors', methods=['GET'])
 def get_authors():
-    with_books = request.args.get('with-books')
     authors = get_all_authors()
+    with_books = request.args.get('with-books')
     if with_books or with_books == '':
         authors = get_all_authors_with_books()
     return jsonify({'all_authors': authors})
@@ -112,46 +110,49 @@ def get_authors():
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['GET'])
 def get_author(author_id):
-    author = find_author_by_id(author_id)
-    validate_len(author)
-    author = author[0]
+    author = get_author_by_id(author_id)
+    if not author:
+        abort(404)
     with_books = request.args.get('with-books')
     if with_books or with_books == '':
-        author = add_books_to_author(author)
+        author = get_books_to_author(author)
     return jsonify(author)
 
 
 @app.route('/book/api/v1.0/authors', methods=['POST'])
 @auth.login_required
 def add_author():
-    author = validate_add_author(request.json['nickname'], request.json['name'])
+    author = validate_and_add_author(
+        request.json['nickname'],
+        request.json['name']
+    )
+    if not author:
+        abort(400)
     return jsonify(author)
 
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['PUT'])
 @auth.login_required
 def change_author(author_id):
-    author = find_author_by_id(author_id)
-    validate_len(author)
-    author = author[0]
     if not request.json:
         abort(400)
-    if 'nickname' in request.json:
-        if not validate_for_str(request.json['nickname']):
-            abort(400)
-    if 'name' in request.json:
-        if not validate_for_str(request.json['name']):
-            abort(400)
-    author['nickname'] = request.json.get('nickname', author['nickname'])
-    author['name'] = request.json.get('name', author['name'])
-    return jsonify(author)
+    response = validate_and_change_author(
+        author_id,
+        request.json.get('nickname', None),
+        request.json.get('name', None)
+        )
+    if response['status'] == 0:
+        abort(404)
+    if response['status'] == 1:
+        abort(400)
+    return jsonify(response['value'])
 
 
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['DELETE'])
 @auth.login_required
 def delete_author(author_id):
-    author = find_author_by_id(author_id)
-    author = author[0]
-    validate_len(author)
+    author = get_author_by_id(author_id)
+    if not author:
+        abort(404)
     remove_books_with_author(author)
     return jsonify({"result": True})
