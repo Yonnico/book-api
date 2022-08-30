@@ -35,7 +35,8 @@ def is_author_id_exist(id):
 
 
 def remove_books_with_author(author):
-    for book in all_books:
+    books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
+    for book in books:
         all_books.remove(book)
     all_authors.remove(author)
     return
