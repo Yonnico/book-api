@@ -77,26 +77,6 @@ def private_add_book(title, annotation, author_id):
 
 
 def validate_and_change_book(book_id, title, annotation, author_id):
-    if not private_validate_change_book(title, annotation, author_id):
-        return None
-    return private_change_book(book_id, title, annotation, author_id)
-
-def private_validate_change_book(title, annotation, author_id):
-    if not request.json:
-        return None
-    if 'nickname' in request.json:
-        if not validate_title(title):
-            return None
-    if 'name' in request.json:
-        if not validate_annotation(annotation):
-            return None
-    if 'author_id' in request.json:
-        if not validate_author_id(author_id):
-            return None
-    return True
-
-
-def private_change_book(book_id, title, annotation, author_id):
     book = get_book_by_id(book_id)
     if not book:
         return {'status': 0, 'value': None}
@@ -112,4 +92,4 @@ def private_change_book(book_id, title, annotation, author_id):
         book['annotation'] = annotation
     if author_id is not None:
         book['author_id'] = author_id
-    return book
+    return {'status': 2, 'value': book}
