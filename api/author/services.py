@@ -72,6 +72,8 @@ def validate_and_change_author(author_id, nickname, name):
     author = get_author_by_id(author_id)
     if not author:
         return {'status': 0, 'value': None}
+    if not request.json:
+        return {'status': 1, 'value': "No request"}
     if nickname is not None and not validate_nickname(nickname):
         return {'status': 1, 'value': nickname}
     if name is not None and not validate_name(name):

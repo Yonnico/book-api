@@ -80,6 +80,8 @@ def validate_and_change_book(book_id, title, annotation, author_id):
     book = get_book_by_id(book_id)
     if not book:
         return {'status': 0, 'value': None}
+    if not request.json:
+        return {'status': 1, 'value': "No request"}
     if title is not None and not validate_title(title):
         return {'status': 1, 'value': title}
     if annotation is not None and not validate_annotation(annotation):

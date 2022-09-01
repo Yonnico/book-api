@@ -74,8 +74,6 @@ def add_book():
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['PUT'])
 @auth.login_required
 def change_book(book_id):
-    if not request.json:
-        abort(400)
     response = validate_and_change_book(
         book_id,
         request.json.get('title', None),
@@ -134,8 +132,6 @@ def add_author():
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['PUT'])
 @auth.login_required
 def change_author(author_id):
-    if not request.json:
-        abort(400)
     response = validate_and_change_author(
         author_id,
         request.json.get('nickname', None),
