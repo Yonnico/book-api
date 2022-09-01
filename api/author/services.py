@@ -69,23 +69,6 @@ def private_add_author(nickname, name):
 
 
 def validate_and_change_author(author_id, nickname, name):
-    if not private_validate_change_author(nickname, name):
-        return {'status': 1}
-    return private_change_author(author_id, nickname, name)
-
-def private_validate_change_author(nickname, name):
-    if not request.json:
-        return None
-    if 'nickname' in request.json:
-        if not validate_nickname(nickname):
-            return None
-    if 'name' in request.json:
-        if not validate_name(name):
-            return None
-    return True
-
-
-def private_change_author(author_id, nickname, name):
     author = get_author_by_id(author_id)
     if not author:
         return {'status': 0, 'value': None}
