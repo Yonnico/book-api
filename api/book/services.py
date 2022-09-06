@@ -32,8 +32,11 @@ def get_all_books_with_authors():
     return list(map(get_author_to_book, all_books))
 
 
-def remove_book(book):
-    return all_books.remove(book)
+def remove_book(book_id):
+    book = get_book_by_id(book_id)
+    if len(book):
+        return all_books.remove(book)
+    return False
 
 
 def validate_and_add_book(title, annotation, author_id):

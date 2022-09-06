@@ -1,3 +1,4 @@
+from webbrowser import get
 from flask import request
 
 from api.author.db import all_authors
@@ -28,12 +29,14 @@ def get_all_authors_with_books():
     return list(map(get_books_to_author, all_authors))
 
 
-def remove_books_with_author(author):
-    books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
-    for book in books:
-        all_books.remove(book)
-    all_authors.remove(author)
-    return
+def remove_books_with_author(author_id):
+    author = get_author_by_id(author_id)
+    if len(author):
+        books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
+        for book in books:
+            all_books.remove(book)
+        return all_authors.remove(author)
+    return False
 
 
 def validate_and_add_author(nickname, name):

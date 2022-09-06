@@ -90,10 +90,9 @@ def change_book(book_id):
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['DELETE'])
 @auth.login_required
 def delete_book(book_id):
-    book = get_book_by_id(book_id)
-    if not book:
+    result = remove_book(book_id)
+    if result == False:
         abort(404)
-    remove_book(book)
     return jsonify({'result': True})
 
 
@@ -147,8 +146,7 @@ def change_author(author_id):
 @app.route('/book/api/v1.0/authors/<int:author_id>', methods=['DELETE'])
 @auth.login_required
 def delete_author(author_id):
-    author = get_author_by_id(author_id)
-    if not author:
+    result = remove_books_with_author(author_id)
+    if result == False:
         abort(404)
-    remove_books_with_author(author)
     return jsonify({"result": True})
