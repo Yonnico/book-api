@@ -1,6 +1,3 @@
-from webbrowser import get
-from flask import request
-
 from api.author.db import all_authors
 from api.book.db import all_books
 
@@ -40,24 +37,18 @@ def remove_author_with_books(author_id):
 
 
 def validate_and_add_author(nickname, name):
-    if not private_validate_add_author(nickname, name):
+    if not private_validate_author(nickname, name, True):
         return None
     return private_add_author(nickname, name)
 
 
-def private_validate_add_author(nickname, name):
-    if not request.json:
-        return None
-    if 'nickname' not in request.json:
-        return None
-    if 'name' not in request.json:
-        return None
-    if 'nickname' in request.json:
+def private_validate_author(nickname, name, required):
+    if required or nickname != None:
         if not validate_nickname(nickname):
-            return None
-    if 'name' in request.json:
+            return False
+    if required or name != None:
         if not validate_name(name):
-            return None
+            return False
     return True
 
 def private_add_author(nickname, name):
@@ -75,14 +66,10 @@ def validate_and_change_author(author_id, nickname, name):
     author = get_author_by_id(author_id)
     if not author:
         return {'status': 0, 'value': None}
-    if not request.json:
-        return {'status': 1, 'value': "No request"}
-    if nickname is not None and not validate_nickname(nickname):
-        return {'status': 1, 'value': nickname}
-    if name is not None and not validate_name(name):
-        return {'status': 1, 'value': name}
-    if nickname is not None:
+    if not private_validate_author(author_id, nickname, name, False):
+        return {'status': 1, 'value': None}
+    if 'nickname' != None:
         author['nickname'] = nickname
-    if name is not None:
+    if 'name' != None:
         author['name'] = name
     return {'status': 2, 'value': author}

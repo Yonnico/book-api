@@ -1,5 +1,3 @@
-from flask import request
-
 from api.author.db import all_authors
 from api.book.db import all_books
 
@@ -40,29 +38,21 @@ def remove_book(book_id):
 
 
 def validate_and_add_book(title, annotation, author_id):
-    if not private_validate_book(title, annotation, author_id):
+    if not private_validate_book(title, annotation, author_id, True):
         return None
     return private_add_book(title, annotation, author_id)
 
 
-def private_validate_book(title, annotation, author_id):
-    if not request.json:
-        return None
-    if not 'title' in request.json:
-        return None
-    if not 'annotation' in request.json:
-        return None
-    if not 'author_id' in request.json:
-        return None
-    if 'title' in request.json:
+def private_validate_book(title, annotation, author_id, required):
+    if required or title != None :
         if not validate_title(title):
-            return None
-    if 'annotation' in request.json:
+            return False
+    if required or annotation != None:
         if not validate_annotation(annotation):
-            return None
-    if 'author_id' in request.json:
+            return False
+    if required or author_id != None:
         if not validate_author_id(author_id):
-            return None
+            return False
     return True
 
 
@@ -83,18 +73,12 @@ def validate_and_change_book(book_id, title, annotation, author_id):
     book = get_book_by_id(book_id)
     if not book:
         return {'status': 0, 'value': None}
-    if not request.json:
-        return {'status': 1, 'value': "No request"}
-    if title is not None and not validate_title(title):
-        return {'status': 1, 'value': title}
-    if annotation is not None and not validate_annotation(annotation):
-        return {'status': 1, 'value': annotation}
-    if author_id is not None and not validate_author_id(author_id):
-        return {'status': 1, 'value': author_id}
-    if title is not None:
+    if not private_validate_book(title, annotation, author_id, False):
+        return {'status': 1, 'value': None}
+    if title != None:
         book['title'] = title
-    if annotation is not None:
+    if annotation != None:
         book['annotation'] = annotation
-    if author_id is not None:
+    if author_id != None:
         book['author_id'] = author_id
     return {'status': 2, 'value': book}
