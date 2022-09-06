@@ -15,7 +15,7 @@ def get_book_by_id(book_id):
     return None
 
 
-def get_author_to_book(book):
+def get_book_with_author(book):
     author = list(filter(lambda a: a['id'] == book['author_id'], all_authors))
     author = author[0]
     book_with_author = book.copy()
@@ -28,8 +28,8 @@ def get_all_books():
     return all_books
 
 
-def get_all_books_with_authors():
-    return list(map(get_author_to_book, all_books))
+def get_books_with_authors():
+    return list(map(get_book_with_author, all_books))
 
 
 def remove_book(book_id):
