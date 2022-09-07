@@ -32,7 +32,7 @@ def get_books_with_authors():
 
 def remove_book(book_id):
     book = get_book_by_id(book_id)
-    if len(book):
+    if book != None:
         return all_books.remove(book)
     return False
 

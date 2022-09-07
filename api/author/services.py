@@ -28,7 +28,7 @@ def get_authors_with_books():
 
 def remove_author_with_books(author_id):
     author = get_author_by_id(author_id)
-    if len(author):
+    if author != None:
         books = list(filter(lambda b: b['author_id'] == author['id'], all_books))
         for book in books:
             all_books.remove(book)
