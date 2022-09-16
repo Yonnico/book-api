@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, make_response, request, abort
 from flask_httpauth import HTTPBasicAuth
 
-from api.book.services import get_book_with_author, get_book_by_id, validate_and_change_book
-from api.book.services import get_all_books, get_books_with_authors
-from api.book.services import validate_and_add_book, remove_book
+from api.book.services import get_book_with_author_by_id, validate_and_change_book
+from api.book.services import remove_author_with_books, get_books_with_authors, remove_book
+from api.book.services import validate_and_add_book, get_author_with_book_by_id
+from api.book.services import get_all_books, get_authors_with_books, get_book_by_id 
 
-from api.author.services import get_author_with_book, get_author_by_id, validate_and_change_author
-from api.author.services import get_all_authors, get_authors_with_books
-from api.author.services import validate_and_add_author, remove_author_with_books
+from api.author.services import validate_and_change_author, get_all_authors
+from api.author.services import validate_and_add_author, get_author_by_id
 
 
 app = Flask(__name__)
@@ -54,7 +54,7 @@ def get_book(book_id):
         abort(404)
     with_authors = request.args.get('with-authors')
     if with_authors or with_authors == '':
-        book = get_book_with_author(book)
+        book = get_book_with_author_by_id(book_id)
     return jsonify(book)
 
 
@@ -88,7 +88,8 @@ def change_book(book_id):
         abort(404)
     if response['status'] == 1:
         abort(400)
-    return jsonify(response['value'])
+    result = response['value']
+    return jsonify(result)
 
 
 @app.route('/book/api/v1.0/books/<int:book_id>', methods=['DELETE'])
@@ -116,7 +117,7 @@ def get_author(author_id):
         abort(404)
     with_books = request.args.get('with-books')
     if with_books or with_books == '':
-        author = get_author_with_book(author)
+        author = get_author_with_book_by_id(author_id)
     return jsonify(author)
 
 
@@ -130,7 +131,7 @@ def add_author():
         request.json['name']
     )
     if not author:
-        abort(404)
+        abort(400)
     return jsonify(author)
 
 
